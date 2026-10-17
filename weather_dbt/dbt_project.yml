@@ -1,0 +1,8 @@
+name: weather_dbt
+version: "1.0.0"
+profile: weather_dbt
+model-paths: ["models"]
+models:
+  weather_dbt:
+    staging:
+      +materialized: view
