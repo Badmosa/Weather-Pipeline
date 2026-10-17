@@ -1,0 +1,6 @@
+weather.duckdb
+raw_data/
+.venv/
+weather_dbt/target/
+weather_dbt/logs/
+weather_dbt/.user.yml
