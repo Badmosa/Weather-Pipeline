@@ -6,3 +6,5 @@ models:
   weather_dbt:
     staging:
       +materialized: view
+    marts:
+      +materialized: table
