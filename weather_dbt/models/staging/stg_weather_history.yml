@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: stg_weather_history
+    columns:
+      - name: city
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Lagos', 'London', 'New York', 'Tokyo']
+      - name: weather_date
+        data_tests:
+          - not_null
+      - name: temp_max_c
+        data_tests:
+          - not_null
+      - name: temp_min_c
+        data_tests:
+          - not_null

@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: monthly_city_weather
+    columns:
+      - name: city
+        data_tests:
+          - not_null
+      - name: month_start
+        data_tests:
+          - not_null
