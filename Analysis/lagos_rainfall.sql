@@ -1,3 +1,11 @@
+select *
+from city_weather_summary;
+
+select *
+from monthly_city_weather;
+
+
+
 select m as month, round(avg(total)::numeric, 1) as avg_rain_mm
 from (
   select extract(year from weather_date) as y,
