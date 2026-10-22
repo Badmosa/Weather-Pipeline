@@ -1,15 +1,15 @@
 # Weather Pipeline
 
-This is an end-to-end data pipeline that pulls weather data for four cities, lands the raw files untouched, loads them into a local database, then cleans, models and tests everything with dbt.
+This is an end-to-end data pipeline that pulls weather data for four cities, lands the raw files untouched, loads them into DuckDB, cleans and tests everything with dbt, then copies the finished tables into Postgres (running in Docker) for SQL analysis.
 
-It runs two flows side by side:
+It includes two flows:
 
 - **Forecast:** the next 7 days of daily weather
-- **History:** daily observations from 2020 to last week (about 6.8 years, nearly 10,000 rows)
+- **History:** daily weather from 2020 to last week (about 6.8 years, nearly 10,000 rows)
 
-Built as a hands-on project to practise the core data engineering workflow: ingest, load, transform, test.
+Built as a hands-on project to practise the core data engineering workflow: ingest, load, transform, test, serve.
 
-**Stack:** Python, DuckDB, dbt (dbt-duckdb), Git
+**Stack:** Python, DuckDB, dbt (dbt-duckdb), Postgres, Docker, Git
 
 ---
 
@@ -31,6 +31,12 @@ flowchart LR
     E --> T
     K --> T
     L --> T
+
+    E --> P[Python script<br/>DuckDB postgres extension]
+    L --> P
+    K --> P
+    P --> Q[Postgres 16<br/>in Docker]
+    Q --> R[SQL analysis<br/>pgAdmin and VS Code]
 ```
 
 | Stage | What happens | Where |
@@ -39,7 +45,9 @@ flowchart LR
 | 2. Load | Reads the raw JSON and loads it into DuckDB (`raw_weather` and `raw_weather_history`) | `Transform/load_to_duckdb.py`, `Transform/load_history.py` |
 | 3. Stage | Casts dates to real date types, renames columns with units (`temp_max_c`, `precipitation_mm`) | `weather_dbt/models/staging/` |
 | 4. Model | Builds a per-city forecast summary and a monthly history table (temperatures, rainfall, rainy days) | `weather_dbt/models/marts/` |
-| 5. Test | Runs 17 data tests across the staging and mart models | `schema.yml` / `.yml` files, `weather_dbt/tests/` |
+| 5. Test | Runs 17 data tests across the staging and mart models | `.yml` files, `weather_dbt/tests/` |
+| 6. Serve | Copies three finished tables from DuckDB into a Postgres database running in Docker | `Transform/loading_to_data_base_postgres.py` |
+| 7. Analyse | Runs SQL against Postgres, from Python, pgAdmin or VS Code | `postgres_query.py`, `Analysis/` |
 
 ---
 
@@ -48,23 +56,24 @@ flowchart LR
 ```
 Weather-Pipeline/
 ├── Ingestion/
-│   ├── Fetch_Weather.py              # 7-day forecast -> raw JSON
-│   └── Fetch_History.py              # 2020 to last week -> raw JSON
+│   ├── Fetch_Weather.py                    # 7-day forecast -> raw JSON
+│   └── Fetch_History.py                    # 2020 to last week -> raw JSON
 ├── Transform/
-│   ├── load_to_duckdb.py             # loads forecast JSON into DuckDB
-│   └── load_history.py               # loads history JSON into DuckDB
+│   ├── load_to_duckdb.py                   # loads forecast JSON into DuckDB
+│   ├── load_history.py                     # loads history JSON into DuckDB
+│   └── loading_to_data_base_postgres.py    # copies marts from DuckDB to Postgres
 ├── weather_dbt/
 │   ├── dbt_project.yml
 │   ├── profiles.yml
 │   ├── models/
 │   │   ├── staging/
 │   │   │   ├── sources.yml
-│   │   │   ├── schema.yml            # forecast staging tests
+│   │   │   ├── schema.yml                  # forecast staging tests
 │   │   │   ├── stg_weather.sql
 │   │   │   ├── stg_weather_history.sql
 │   │   │   └── stg_weather_history.yml
 │   │   └── marts/
-│   │       ├── schema.yml            # forecast mart tests
+│   │       ├── schema.yml                  # forecast mart tests
 │   │       ├── city_weather_summary.sql
 │   │       ├── monthly_city_weather.sql
 │   │       └── monthly_city_weather.yml
@@ -72,7 +81,10 @@ Weather-Pipeline/
 │       ├── assert_one_row_per_city_per_day.sql
 │       ├── assert_temperatures_make_sense.sql
 │       └── assert_history_one_row_per_city_per_day.sql
-├── Validation_Check.py               # quick script to inspect the tables
+├── Analysis/
+│   └── lagos_rainfall.sql                  # Lagos average rainfall by month
+├── Validation_Check.py                     # quick script to inspect the DuckDB tables
+├── postgres_query.py                       # runs analysis queries against Postgres
 └── .gitignore
 ```
 
@@ -99,6 +111,7 @@ Cities and coordinates live in a dictionary at the top of each ingestion script.
 
 - Python 3.12 (other recent versions should work)
 - Git
+- Docker Desktop (only needed for the Postgres step)
 
 ### Setup
 
@@ -110,7 +123,7 @@ python -m venv .venv
 source .venv/Scripts/activate      # Git Bash on Windows
 # source .venv/bin/activate        # macOS / Linux
 
-python -m pip install requests duckdb dbt-duckdb
+python -m pip install requests duckdb dbt-duckdb psycopg2-binary
 ```
 
 ### Run the pipeline
@@ -130,17 +143,60 @@ python Transform/load_history.py
 cd weather_dbt
 dbt run --profiles-dir .
 dbt test --profiles-dir .
+cd ..
 ```
 
-### Look at the results
+### Load the marts into Postgres
 
-From the project root:
+Start a Postgres container once, with a password of your choice:
 
 ```bash
-python Validation_Check.py
+docker run --name weather-postgres \
+  -e POSTGRES_PASSWORD=<your-password> \
+  -e POSTGRES_DB=weather \
+  -p 5432:5432 -d postgres:16
 ```
 
-Or open `weather.duckdb` with any DuckDB client and query the marts directly.
+Then set the password as an environment variable (the scripts read it from there, so it never ends up in the repo) and run the loader:
+
+```bash
+export POSTGRES_PASSWORD=<your-password>
+python Transform/loading_to_data_base_postgres.py
+```
+
+This copies `city_weather_summary`, `monthly_city_weather` and `stg_weather_history` into the `weather` database.
+
+### Query the results
+
+- **From Python:** `python postgres_query.py`
+- **From a SQL client:** connect pgAdmin or the VS Code PostgreSQL extension to `localhost`, port `5432`, database `weather`, user `postgres`, and run the files in `Analysis/`.
+- **DuckDB only:** `python Validation_Check.py` inspects the DuckDB tables directly.
+
+---
+
+## Analysis
+
+All figures come from the history flow, January 2020 to October 2026 (about 6.8 years). The Lagos query lives in `Analysis/lagos_rainfall.sql`.
+
+### Lagos has two rainy seasons
+
+Averaging each calendar month across the years:
+
+- **Main rains:** June is the wettest month, averaging 267.5 mm with about 27 rainy days.
+- **The August break:** rainfall drops to roughly 115 mm in August, between the two peaks.
+- **Second rains:** September (about 227 mm) and October (about 164 mm) pick back up.
+- **Dry season:** December to February, with January the driest at about 20.7 mm.
+
+### Tokyo is the wettest city, not Lagos
+
+| City | Avg daily high | Total rain | Roughly per year |
+|---|---|---|---|
+| Tokyo | 20.9 C | 11,442 mm | 1,690 mm |
+| Lagos | 30.2 C | 9,556 mm | 1,410 mm |
+| New York | 17.6 C | 9,105 mm | 1,340 mm |
+| London | 15.9 C | 4,958 mm | 730 mm |
+
+I expected Lagos to be the wettest. Its rain is packed into a few heavy months, while Tokyo's is spread across the year, so Tokyo comes out ahead.
 
 ---
 
@@ -163,16 +219,7 @@ Or open `weather.duckdb` with any DuckDB client and query the marts directly.
 | Nov | 69.0 | 21 |
 | Dec | 71.8 | 23 |
 
-Lagos' two rainy seasons show up clearly: a main peak in June, a dip in July and August, then a second rise in September and October. A rainy day here means 1 mm or more.
-
-### City comparison, January 2020 to October 2026 (about 6.8 years)
-
-| City | Avg daily high | Total rain |
-|---|---|---|
-| Tokyo | 20.9 C | 11,442 mm |
-| Lagos | 30.2 C | 9,556 mm |
-| New York | 17.6 C | 9,105 mm |
-| London | 15.9 C | 4,958 mm |
+A rainy day here means 1 mm or more.
 
 ### 7-day forecast summary (`city_weather_summary`, run on 17 Oct 2026)
 
@@ -211,15 +258,20 @@ A dbt test passes when its query returns zero rows. The custom tests work by sel
 - **Forecast and history are separate.** They live in different folders, tables and models. A forecast is a prediction and history is what was recorded, so mixing them would blur the meaning of the data.
 - **The history load is a full refresh.** `load_history.py` drops and rebuilds its table each run, so re-running never creates duplicates.
 - **Staging is a view, marts are tables.** Staging is a light cleaning layer, so a view is enough. Marts are what a dashboard would read, so they are materialised as tables.
+- **DuckDB to transform, Postgres to serve.** DuckDB runs in-process from a single file, which keeps development simple. Postgres is a real server with users and connections, which is closer to what a team would query.
+- **Postgres runs in Docker.** One command starts it, and removing the container leaves nothing behind on the machine.
+- **No passwords in the repo.** The Postgres password is read from the `POSTGRES_PASSWORD` environment variable.
 - **Paths are anchored to the project root.** The newer scripts find their folders relative to the file itself, so they work no matter where they are run from.
-- **DuckDB for local development.** It runs in-process from a single file, with no server or account.
 - **Tests live next to the models.** Column checks sit in `.yml` files, and rules that need custom logic are standalone SQL files in `tests/`.
+- **Analysis queries are saved as `.sql` files.** They live in the repo, so the findings can be reproduced.
 
 ---
 
 ## Known limitations
 
 - **The forecast loader is not idempotent.** `load_to_duckdb.py` inserts rows every time it runs, so running it twice on the same data creates duplicates. The `assert_one_row_per_city_per_day` test catches this. For now, delete the `raw_weather` table (or `weather.duckdb`) before a fresh load.
+- **Postgres is a snapshot.** It holds a copy of the tables from the last time the load script ran. After re-running dbt, run the Postgres loader again to refresh it.
+- **The dbt tests cover DuckDB only.** The Postgres copy is not tested separately.
 - **Modeled history.** The archive data is modeled, not station-measured.
 - **Manual runs.** Each step is run by hand. Nothing is scheduled yet.
 
@@ -227,24 +279,26 @@ A dbt test passes when its query returns zero rows. The custom tests work by sel
 
 ## Roadmap
 
+- [x] Forecast and history ingestion
+- [x] dbt staging and mart models with 17 tests
+- [x] Postgres in Docker, with the marts loaded into it
+- [x] SQL analysis (Lagos rainfall, city comparison)
+- [ ] Power BI dashboard on `monthly_city_weather`
+- [ ] Orchestrate the whole run on a daily schedule with Airflow
 - [ ] Make the forecast load idempotent
 - [ ] Add incremental models in dbt
-- [ ] Load the marts into Postgres and build a dashboard on `monthly_city_weather`
-- [ ] Orchestrate the whole run on a daily schedule
-- [ ] Run it in Docker
 - [ ] Add more cities and more weather variables
 
 ---
 
 ## Author
 
-**Badmos Adesola Ayomide**, **Data Engineer.**
+**Badmos Adesola Ayomide**, **Data Engineer**.
 
 - LinkedIn: [linkedin.com/in/badmosayomide](https://linkedin.com/in/badmosayomide)
 
 - Other Projects: [datascienceportfol.io/badmosayomide02](https://datascienceportfol.io/badmosayomide02)
 
-
-Feedback and suggestions are welcome.
-
 Weather data by [Open-Meteo.com](https://open-meteo.com/).
+
+Happy to welcome all feedback and suggestions.
