@@ -1,14 +1,22 @@
-import duckdb
 import json
 from pathlib import Path
 
-# This file lives in transform/, so go up one level to reach the project root
+import duckdb
+
+# This file lives in Transform/, so go up one level to reach the project root
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 DB_PATH = PROJECT_ROOT / "weather.duckdb"
 RAW_DATA_DIR = PROJECT_ROOT / "raw_data"
 
+
 def load_json_to_duckdb():
+    if not RAW_DATA_DIR.exists():
+        raise FileNotFoundError(
+            f"No forecast files found at {RAW_DATA_DIR}. "
+            "Run Ingestion/Fetch_Weather.py first."
+        )
+
     con = duckdb.connect(str(DB_PATH))
 
     con.execute("""
@@ -34,20 +42,32 @@ def load_json_to_duckdb():
                 data = json.load(f)
 
             daily = data["daily"]
-            dates = daily["time"]
-            temp_max = daily["temperature_2m_max"]
-            temp_min = daily["temperature_2m_min"]
-            precipitation = daily["precipitation_sum"]
-
-            for i in range(len(dates)):
-                con.execute(
-                    "INSERT INTO raw_weather VALUES (?, ?, ?, ?, ?, ?)",
-                    [city, load_date, dates[i], temp_max[i], temp_min[i], precipitation[i]]
+            rows = [
+                (
+                    city,
+                    load_date,
+                    daily["time"][i],
+                    daily["temperature_2m_max"][i],
+                    daily["temperature_2m_min"][i],
+                    daily["precipitation_sum"][i],
                 )
+                for i in range(len(daily["time"]))
+            ]
 
-            print(f"Loaded {city} ({load_date}): {len(dates)} rows")
+            # Replace this city/load_date so re-running the same files is safe
+            con.execute(
+                "DELETE FROM raw_weather WHERE city = ? AND load_date = ?",
+                [city, load_date],
+            )
+            con.executemany(
+                "INSERT INTO raw_weather VALUES (?, ?, ?, ?, ?, ?)",
+                rows,
+            )
+
+            print(f"Loaded {city} ({load_date}): {len(rows)} rows")
 
     con.close()
+
 
 if __name__ == "__main__":
     load_json_to_duckdb()
