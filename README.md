@@ -27,7 +27,7 @@ flowchart LR
     J --> K[dbt staging<br/>stg_weather_history]
     K --> L[dbt mart<br/>monthly_city_weather]
 
-    D --> T[17 dbt tests]
+    D --> T[18 dbt tests]
     E --> T
     K --> T
     L --> T
@@ -45,7 +45,7 @@ flowchart LR
 | 2. Load | Reads the raw JSON and loads it into DuckDB (`raw_weather` and `raw_weather_history`) | `Transform/load_to_duckdb.py`, `Transform/load_history.py` |
 | 3. Stage | Casts dates to real date types, renames columns with units (`temp_max_c`, `precipitation_mm`) | `weather_dbt/models/staging/` |
 | 4. Model | Builds a per-city forecast summary and a monthly history table (temperatures, rainfall, rainy days) | `weather_dbt/models/marts/` |
-| 5. Test | Runs 17 data tests across the staging and mart models | `.yml` files, `weather_dbt/tests/` |
+| 5. Test | Runs 18 data tests across the staging and mart models | `.yml` files, `weather_dbt/tests/` |
 | 6. Serve | Copies three finished tables from DuckDB into a Postgres database running in Docker | `Transform/loading_to_data_base_postgres.py` |
 | 7. Analyse | Runs SQL against Postgres, from Python, pgAdmin or VS Code | `postgres_query.py`, `Analysis/` |
 
@@ -80,7 +80,8 @@ Weather-Pipeline/
 │   └── tests/
 │       ├── assert_one_row_per_city_per_day.sql
 │       ├── assert_temperatures_make_sense.sql
-│       └── assert_history_one_row_per_city_per_day.sql
+│       ├── assert_history_one_row_per_city_per_day.sql
+│       └── assert_monthly_one_row_per_city_per_month.sql
 ├── Analysis/
 │   └── lagos_rainfall.sql                  # Lagos average rainfall by month
 ├── Validation_Check.py                     # quick script to inspect the DuckDB tables
@@ -236,7 +237,7 @@ The forecast numbers change on every run, since the API returns a fresh 7 days e
 
 ## Data tests
 
-All 17 tests pass on the current data.
+All 18 tests pass on the current data.
 
 | Area | Tests | What they check |
 |---|---|---|
@@ -246,7 +247,8 @@ All 17 tests pass on the current data.
 | `monthly_city_weather` | 2 | `city` and `month_start` are never empty |
 | `assert_one_row_per_city_per_day` | 1 | no duplicate city and date rows in the forecast data |
 | `assert_history_one_row_per_city_per_day` | 1 | no duplicate city and date rows in the history data |
-| `assert_temperatures_make_sense` | 1 | a day's low is never above its high, and no temperature falls outside -60 to 60 degrees C |
+| `assert_temperatures_make_sense` | 1 | a day's low is never above its high, and no temperature falls outside -60 to 60 degrees C (forecast and history) |
+| `assert_monthly_one_row_per_city_per_month` | 1 | no duplicate city and month rows in the monthly mart |
 
 A dbt test passes when its query returns zero rows. The custom tests work by selecting the "bad" rows.
 
@@ -257,6 +259,7 @@ A dbt test passes when its query returns zero rows. The custom tests work by sel
 - **Raw data is kept as-is.** API responses are saved to disk before any cleaning. If a transformation has a bug, I can reprocess from the original files without calling the API again.
 - **Forecast and history are separate.** They live in different folders, tables and models. A forecast is a prediction and history is what was recorded, so mixing them would blur the meaning of the data.
 - **The history load is a full refresh.** `load_history.py` drops and rebuilds its table each run, so re-running never creates duplicates.
+- **The forecast load is idempotent per city and load date.** `load_to_duckdb.py` deletes existing rows for that city and folder date before inserting, so re-running the same files does not create duplicates.
 - **Staging is a view, marts are tables.** Staging is a light cleaning layer, so a view is enough. Marts are what a dashboard would read, so they are materialised as tables.
 - **DuckDB to transform, Postgres to serve.** DuckDB runs in-process from a single file, which keeps development simple. Postgres is a real server with users and connections, which is closer to what a team would query.
 - **Postgres runs in Docker.** One command starts it, and removing the container leaves nothing behind on the machine.
@@ -269,7 +272,6 @@ A dbt test passes when its query returns zero rows. The custom tests work by sel
 
 ## Known limitations
 
-- **The forecast loader is not idempotent.** `load_to_duckdb.py` inserts rows every time it runs, so running it twice on the same data creates duplicates. The `assert_one_row_per_city_per_day` test catches this. For now, delete the `raw_weather` table (or `weather.duckdb`) before a fresh load.
 - **Postgres is a snapshot.** It holds a copy of the tables from the last time the load script ran. After re-running dbt, run the Postgres loader again to refresh it.
 - **The dbt tests cover DuckDB only.** The Postgres copy is not tested separately.
 - **Modeled history.** The archive data is modeled, not station-measured.
@@ -283,9 +285,9 @@ A dbt test passes when its query returns zero rows. The custom tests work by sel
 - [x] dbt staging and mart models with 17 tests
 - [x] Postgres in Docker, with the marts loaded into it
 - [x] SQL analysis (Lagos rainfall, city comparison)
+- [x] Make the forecast load idempotent
 - [ ] Power BI dashboard on `monthly_city_weather`
 - [ ] Orchestrate the whole run on a daily schedule with Airflow
-- [ ] Make the forecast load idempotent
 - [ ] Add incremental models in dbt
 - [ ] Add more cities and more weather variables
 
