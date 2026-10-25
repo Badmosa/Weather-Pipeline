@@ -89,7 +89,9 @@ Weather-Pipeline/
 └── .gitignore
 ```
 
-Generated files (`weather.duckdb`, `raw_data/`, `raw_history/`, `.venv/`, and dbt's `target/` and `logs/`) are not committed. Running the pipeline recreates them.
+Generated files (`weather.duckdb`, `raw_data/`, `.venv/`, and dbt's `target/` and `logs/`) are not committed. Running the pipeline recreates them.
+
+The `raw_history/` JSON files are the exception. They are committed so the history flow can be loaded straight after cloning, without calling the archive API again. Running `Fetch_History.py` refreshes them.
 
 ---
 
