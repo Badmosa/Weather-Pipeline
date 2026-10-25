@@ -7,3 +7,5 @@ __pycache__/
 weather_dbt/target/
 weather_dbt/logs/
 weather_dbt/.user.yml.gitignore
+
+logs/

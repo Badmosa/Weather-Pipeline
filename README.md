@@ -272,6 +272,7 @@ A dbt test passes when its query returns zero rows. The custom tests work by sel
 
 ## Known limitations
 
+- **Forecast snapshots accumulate.** Re-running the loader on the same day replaces that day's rows, but each new day adds a new snapshot, keyed by load date.
 - **Postgres is a snapshot.** It holds a copy of the tables from the last time the load script ran. After re-running dbt, run the Postgres loader again to refresh it.
 - **The dbt tests cover DuckDB only.** The Postgres copy is not tested separately.
 - **Modeled history.** The archive data is modeled, not station-measured.
@@ -282,7 +283,7 @@ A dbt test passes when its query returns zero rows. The custom tests work by sel
 ## Roadmap
 
 - [x] Forecast and history ingestion
-- [x] dbt staging and mart models with 17 tests
+- [x] dbt staging and mart models with 18 tests
 - [x] Postgres in Docker, with the marts loaded into it
 - [x] SQL analysis (Lagos rainfall, city comparison)
 - [x] Make the forecast load idempotent
