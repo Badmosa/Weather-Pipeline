@@ -97,7 +97,9 @@ The `raw_history/` JSON files are the exception. They are committed so the histo
 
 ## Data source
 
-Weather data comes from [Open-Meteo](https://open-meteo.com/), which is free for non-commercial use and needs no API key. Both flows request daily maximum temperature, minimum temperature and total precipitation.
+Weather data comes from [Open-Meteo](https://open-meteo.com/).
+
+It is free for non-commercial use and needs no API key. Both flows request daily maximum temperature, minimum temperature and total precipitation.
 
 - **Forecast flow:** the forecast endpoint, which returns the next 7 days.
 - **History flow:** the archive endpoint, which serves modeled historical data back to 1940. The history script fetches 2020-01-01 up to a week before the run date, because the archive lags a few days behind.
@@ -306,4 +308,4 @@ A dbt test passes when its query returns zero rows. The custom tests work by sel
 
 Weather data by [Open-Meteo.com](https://open-meteo.com/).
 
-Happy to welcome all feedback and suggestions.
+Happy to welcome all feedback and suggestions.k
