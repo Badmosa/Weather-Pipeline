@@ -99,14 +99,14 @@ The `raw_history/` JSON files are the exception. They are committed so the histo
 
 Weather data comes from [Open-Meteo](https://open-meteo.com/).
 
-It is free for non-commercial use and needs no API key. Both flows request daily maximum temperature, minimum temperature and total precipitation.
+It is free for non-commercial use and needs no API key.
+
+Both flows request daily maximum temperature, minimum temperature and total precipitation.
 
 - **Forecast flow:** the forecast endpoint, which returns the next 7 days.
 - **History flow:** the archive endpoint, which serves modeled historical data back to 1940. The history script fetches 2020-01-01 up to a week before the run date, because the archive lags a few days behind.
 
 The archive values are modeled (reanalysis) data, not readings from weather stations, so totals can differ from official station records.
-
-Cities and coordinates live in a dictionary at the top of each ingestion script. To add a city, add it to both scripts and to the `accepted_values` tests in the staging `.yml` files.
 
 ---
 
