@@ -122,9 +122,11 @@ The archive values are modeled (reanalysis) data, not readings from weather stat
 
 ```bash
 git clone https://github.com/Badmosa/Weather-Pipeline.git
+
 cd Weather-Pipeline
 
 python -m venv .venv
+
 source .venv/Scripts/activate      # Git Bash on Windows
 # source .venv/bin/activate        # macOS / Linux
 
@@ -133,7 +135,7 @@ python -m pip install requests duckdb dbt-duckdb psycopg2-binary
 
 ### Run the pipeline
 
-Run these from the project root.
+To run the pipeline, run these from the project root.
 
 ```bash
 # Forecast flow
@@ -153,19 +155,19 @@ cd ..
 
 ### Load the marts into Postgres
 
-Start a Postgres container once, with a password of your choice:
+Running a Postgres container with a password:
 
 ```bash
 docker run --name weather-postgres \
-  -e POSTGRES_PASSWORD=<your-password> \
+  -e POSTGRES_PASSWORD=<set password> \
   -e POSTGRES_DB=weather \
   -p 5432:5432 -d postgres:16
 ```
 
-Then set the password as an environment variable (the scripts read it from there, so it never ends up in the repo) and run the loader:
+For the password not to end-up in the repo, the scripts reads the already setted password as an environment variable before runing the loader:   
 
 ```bash
-export POSTGRES_PASSWORD=<your-password>
+export POSTGRES_PASSWORD=<password>
 python Transform/loading_to_data_base_postgres.py
 ```
 
@@ -174,7 +176,7 @@ This copies `city_weather_summary`, `monthly_city_weather` and `stg_weather_hist
 ### Query the results
 
 - **From Python:** `python postgres_query.py`
-- **From a SQL client:** connect pgAdmin or the VS Code PostgreSQL extension to `localhost`, port `5432`, database `weather`, user `postgres`, and run the files in `Analysis/`.
+- **From a SQL client:** connect pgAdmin and VS Code (did analysis in both) PostgreSQL extension to `localhost`, port `5432`, database `weather`, user `postgres`, and run the files in `Analysis/`(same as VS Code).
 - **DuckDB only:** `python Validation_Check.py` inspects the DuckDB tables directly.
 
 ---
