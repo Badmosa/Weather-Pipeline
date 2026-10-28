@@ -176,7 +176,7 @@ This copies `city_weather_summary`, `monthly_city_weather` and `stg_weather_hist
 ### Query the results
 
 - **From Python:** `python postgres_query.py`
-- **From a SQL client:** connect pgAdmin and VS Code (did analysis in both) PostgreSQL extension to `localhost`, port `5432`, database `weather`, user `postgres`, and run the files in `Analysis/`(same as VS Code).
+- **From a SQL client:** connect pgAdmin PostgreSQL extension to `localhost`, port `5432`, database `weather`, user `postgres`, and run the files in `Analysis/`.
 - **DuckDB only:** `python Validation_Check.py` inspects the DuckDB tables directly.
 
 ---
