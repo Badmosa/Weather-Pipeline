@@ -5,7 +5,7 @@ This is an end-to-end data pipeline that pulls weather data for four cities, lan
 It includes two flows:
 
 - **Forecast:** the next 7 days of daily weather
-- **History:** daily weather from 2020 to last week (about 6.8 years, nearly 10,000 rows)
+- **History:** daily weather from 2020 to 17-10-2026 (about 6.8 years, nearly 10,000 rows)
 
 Built as a hands-on project to practise the core data engineering workflow: ingest, load, transform, test, serve.
 
