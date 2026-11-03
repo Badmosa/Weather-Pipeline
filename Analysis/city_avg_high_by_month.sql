@@ -1,3 +1,4 @@
+--average daily high by month for each city--
 select extract(month from weather_date) as month,
   round((avg(temp_max_c) filter (where city = 'Lagos'))::numeric, 1) as lagos,
   round((avg(temp_max_c) filter (where city = 'London'))::numeric, 1) as london,
