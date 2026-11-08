@@ -8,7 +8,7 @@ DB_PATH = PROJECT_ROOT / "weather.duckdb"
 
 # Read the password from an environment variable so it never goes into Git
 PG_PASSWORD = os.environ["POSTGRES_PASSWORD"]
-# Single quotes in the password would break the ATTACH string
+# Single quotes in the password would break the ATTACH string, so I used the double string
 PG_PASSWORD_SQL = PG_PASSWORD.replace("'", "''")
 
 TABLES = ["city_weather_summary", "monthly_city_weather", "stg_weather_history"]
