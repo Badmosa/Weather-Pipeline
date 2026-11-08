@@ -1,4 +1,3 @@
--- SQLBook: Code
 -- Lagos average rainfall by calendar month across the history window.
 -- Uses complete months only (28+ days) so partial current months do not skew the average.
 select extract(month from month_start) as month_num,
