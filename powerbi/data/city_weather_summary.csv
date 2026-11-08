@@ -1,0 +1,5 @@
+city,days_recorded,avg_max_temp_c,avg_min_temp_c,hottest_day_c,coldest_day_c,total_rain_mm
+Lagos,7,29.8,25.6,30.8,25.0,40.2
+London,7,14.9,9.4,17.1,7.8,24.9
+New York,7,16.5,8.1,20.8,3.1,0.0
+Tokyo,7,19.3,13.3,26.1,10.3,110.3
