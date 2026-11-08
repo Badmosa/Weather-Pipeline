@@ -1,0 +1,49 @@
+city,month_num,month_name,avg_rain_mm,avg_rainy_days,avg_max_temp_c
+Lagos,1,January,20.7,7.4,32.0
+Lagos,2,February,30.9,8.6,32.3
+Lagos,3,March,74.2,15.3,31.8
+Lagos,4,April,89.8,16.0,31.6
+Lagos,5,May,124.1,21.4,30.8
+Lagos,6,June,266.5,27.0,28.9
+Lagos,7,July,190.4,23.3,27.8
+Lagos,8,August,114.9,21.1,27.7
+Lagos,9,September,227.2,26.0,28.1
+Lagos,10,October,163.8,26.5,29.0
+Lagos,11,November,65.5,19.0,30.5
+Lagos,12,December,24.4,8.3,31.8
+London,1,January,74.1,12.1,7.7
+London,2,February,66.5,13.4,9.8
+London,3,March,49.1,11.1,11.7
+London,4,April,33.7,7.0,14.9
+London,5,May,50.4,10.4,18.4
+London,6,June,62.2,10.3,22.1
+London,7,July,57.6,9.6,23.5
+London,8,August,45.2,8.0,23.4
+London,9,September,63.9,10.4,20.4
+London,10,October,99.1,14.7,15.9
+London,11,November,71.5,11.7,11.5
+London,12,December,67.1,11.7,9.0
+New York,1,January,86.6,9.6,4.3
+New York,2,February,81.7,9.4,5.4
+New York,3,March,130.3,10.7,11.7
+New York,4,April,110.9,12.0,16.2
+New York,5,May,104.3,11.6,21.4
+New York,6,June,83.6,10.3,27.5
+New York,7,July,151.5,14.6,30.4
+New York,8,August,122.3,12.7,28.7
+New York,9,September,142.1,10.3,24.7
+New York,10,October,140.6,8.0,19.2
+New York,11,November,71.1,8.2,12.8
+New York,12,December,113.0,10.2,6.7
+Tokyo,1,January,44.6,5.1,9.6
+Tokyo,2,February,56.0,6.3,11.2
+Tokyo,3,March,147.1,12.6,15.0
+Tokyo,4,April,162.0,12.4,19.3
+Tokyo,5,May,168.0,12.7,23.3
+Tokyo,6,June,222.6,15.4,26.6
+Tokyo,7,July,191.0,17.3,31.3
+Tokyo,8,August,147.0,14.0,32.5
+Tokyo,9,September,256.6,16.3,28.1
+Tokyo,10,October,158.6,12.2,21.8
+Tokyo,11,November,70.9,7.2,17.3
+Tokyo,12,December,49.0,6.0,11.7

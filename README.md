@@ -48,6 +48,7 @@ flowchart LR
 | 5. Test | Runs 18 data tests across the staging and mart models | `.yml` files, `weather_dbt/tests/` |
 | 6. Serve | Copies three finished tables from DuckDB into a Postgres database running in Docker | `Transform/loading_to_data_base_postgres.py` |
 | 7. Analyse | Runs SQL against Postgres, from Python, pgAdmin or VS Code | `postgres_query.py`, `Analysis/` |
+| 8. Visualise | Exports marts to CSV for Power BI and saves the rainfall charts | `Transform/pipeline_visual.py`, `powerbi/` |
 
 ---
 
@@ -61,7 +62,9 @@ Weather-Pipeline/
 ├── Transform/
 │   ├── load_to_duckdb.py                   # loads forecast JSON into DuckDB
 │   ├── load_history.py                     # loads history JSON into DuckDB
-│   └── loading_to_data_base_postgres.py    # copies marts from DuckDB to Postgres
+│   ├── loading_to_data_base_postgres.py    # copies marts from DuckDB to Postgres
+│   ├── pipeline_visual.py                # DuckDB marts -> CSV for Power BI
+│   └── plot_analysis.py                    # rainfall charts from the marts
 ├── weather_dbt/
 │   ├── dbt_project.yml
 │   ├── profiles.yml
@@ -83,7 +86,13 @@ Weather-Pipeline/
 │       ├── assert_history_one_row_per_city_per_day.sql
 │       └── assert_monthly_one_row_per_city_per_month.sql
 ├── Analysis/
-│   └── lagos_rainfall.sql                  # Lagos average rainfall by month
+│   ├── lagos_rainfall.sql                  # Lagos average rainfall by month
+│   ├── city_monthly_rainfall.sql           # same query for all four cities
+│   └── city_rainfall_totals.sql            # total rain and typical high by city
+├── powerbi/
+│   ├── build_report.md                     # how to build the Power BI visuals
+│   ├── data/                               # CSV extracts for Power BI
+│   └── charts/                             # rainfall dashboard images
 ├── Validation_Check.py                     # quick script to inspect the DuckDB tables
 ├── postgres_query.py                       # runs analysis queries against Postgres
 └── .gitignore
@@ -124,7 +133,7 @@ python -m venv .venv
 source .venv/Scripts/activate      # Git Bash on Windows
 # source .venv/bin/activate        # macOS / Linux
 
-python -m pip install requests duckdb dbt-duckdb psycopg2-binary
+python -m pip install requests duckdb dbt-duckdb psycopg2-binary matplotlib
 ```
 
 ### Run the pipeline
@@ -172,32 +181,58 @@ This copies `city_weather_summary`, `monthly_city_weather` and `stg_weather_hist
 - **From Python:** `python postgres_query.py`
 - **From a SQL client:** connect pgAdmin or the VS Code PostgreSQL extension to `localhost`, port `5432`, database `weather`, user `postgres`, and run the files in `Analysis/`.
 - **DuckDB only:** `python Validation_Check.py` inspects the DuckDB tables directly.
+- **Power BI:** `python Transform/pipeline_visual.py`, then follow `powerbi/build_report.md`.
+
+---
+
+## Power BI
+
+The serving layer for a dashboard is `monthly_city_weather`. The export script writes three CSVs that Power BI can open without Postgres:
+
+```bash
+python Transform/pipeline_visual.py
+python Transform/plot_analysis.py
+```
+
+| File | Grain | Use in Power BI |
+|---|---|---|
+| `powerbi/data/city_month_climatology.csv` | city × calendar month | line chart of typical rainfall |
+| `powerbi/data/monthly_city_weather.csv` | city × year-month | totals, slicers, year comparisons |
+| `powerbi/data/city_weather_summary.csv` | one row per city | 7-day forecast page |
+
+Build steps and field lists are in `powerbi/build_report.md`. The two findings below are also saved as `powerbi/charts/rainfall_dashboard.png` so they show on GitHub without opening Power BI.
 
 ---
 
 ## Analysis
 
-All figures come from the history flow, January 2020 to October 2026 (about 6.8 years). The Lagos query lives in `Analysis/lagos_rainfall.sql`.
+All figures come from the history flow, January 2020 to October 2026 (about 6.8 years). SQL lives in `Analysis/`.
+
+![Rainfall dashboard](powerbi/charts/rainfall_dashboard.png)
 
 ### Lagos has two rainy seasons
 
 Averaging each calendar month across the years:
 
-- **Main rains:** June is the wettest month, averaging 267.5 mm with about 27 rainy days.
+- **Main rains:** June is the wettest month, averaging 266.5 mm with about 27 rainy days.
 - **The August break:** rainfall drops to roughly 115 mm in August, between the two peaks.
 - **Second rains:** September (about 227 mm) and October (about 164 mm) pick back up.
 - **Dry season:** December to February, with January the driest at about 20.7 mm.
+
+![Average monthly rainfall](powerbi/charts/monthly_rainfall_by_city.png)
 
 ### Tokyo is the wettest city, not Lagos
 
 | City | Avg daily high | Total rain | Roughly per year |
 |---|---|---|---|
-| Tokyo | 20.9 C | 11,442 mm | 1,690 mm |
-| Lagos | 30.2 C | 9,556 mm | 1,410 mm |
-| New York | 17.6 C | 9,105 mm | 1,340 mm |
-| London | 15.9 C | 4,958 mm | 730 mm |
+| Tokyo | 20.9 C | 11,443 mm | 1,680 mm |
+| Lagos | 30.2 C | 9,597 mm | 1,410 mm |
+| New York | 17.6 C | 9,115 mm | 1,340 mm |
+| London | 15.9 C | 4,965 mm | 730 mm |
 
 I expected Lagos to be the wettest. Its rain is packed into a few heavy months, while Tokyo's is spread across the year, so Tokyo comes out ahead.
+
+![Total rainfall by city](powerbi/charts/total_rainfall_by_city.png)
 
 ---
 
@@ -282,11 +317,11 @@ A dbt test passes when its query returns zero rows. The custom tests work by sel
 ## Roadmap
 
 - [x] Forecast and history ingestion
-- [x] dbt staging and mart models with 17 tests
+- [x] dbt staging and mart models with 18 tests
 - [x] Postgres in Docker, with the marts loaded into it
 - [x] SQL analysis (Lagos rainfall, city comparison)
 - [x] Make the forecast load idempotent
-- [ ] Power BI dashboard on `monthly_city_weather`
+- [x] Power BI dataset and rainfall visuals on `monthly_city_weather`
 - [ ] Orchestrate the whole run on a daily schedule with Airflow
 - [ ] Add incremental models in dbt
 - [ ] Add more cities and more weather variables
