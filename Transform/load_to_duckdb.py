@@ -3,7 +3,7 @@ from pathlib import Path
 
 import duckdb
 
-# This file lives in Transform/, so go up one level to reach the project root
+# File in project root
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 DB_PATH = PROJECT_ROOT / "weather.duckdb"
