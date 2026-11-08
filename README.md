@@ -5,7 +5,7 @@ This is an end-to-end data pipeline that pulls weather data for four cities, lan
 It includes two flows:
 
 - **Forecast:** the next 7 days of daily weather
-- **History:** daily weather from 2020 to last week (about 6.8 years, nearly 10,000 rows)
+- **History:** daily weather from 2020 to 17-10-2026 (about 6.8 years, nearly 10,000 rows)
 
 Built as a hands-on project to practise the core data engineering workflow: ingest, load, transform, test, serve.
 
@@ -98,20 +98,24 @@ Weather-Pipeline/
 └── .gitignore
 ```
 
-Generated files (`weather.duckdb`, `raw_data/`, `raw_history/`, `.venv/`, and dbt's `target/` and `logs/`) are not committed. Running the pipeline recreates them.
+Generated files (`weather.duckdb`, `raw_data/`, `.venv/`, and dbt's `target/` and `logs/`) are not committed. Running the pipeline recreates them.
+
+The `raw_history/` JSON files are the exception. They are committed so the history flow can be loaded straight after cloning, without calling the archive API again. Running `Fetch_History.py` refreshes them.
 
 ---
 
 ## Data source
 
-Weather data comes from [Open-Meteo](https://open-meteo.com/), which is free for non-commercial use and needs no API key. Both flows request daily maximum temperature, minimum temperature and total precipitation.
+Weather data comes from [Open-Meteo](https://open-meteo.com/).
+
+It is free for non-commercial use and needs no API key.
+
+Both flows request daily maximum temperature, minimum temperature and total precipitation.
 
 - **Forecast flow:** the forecast endpoint, which returns the next 7 days.
 - **History flow:** the archive endpoint, which serves modeled historical data back to 1940. The history script fetches 2020-01-01 up to a week before the run date, because the archive lags a few days behind.
 
 The archive values are modeled (reanalysis) data, not readings from weather stations, so totals can differ from official station records.
-
-Cities and coordinates live in a dictionary at the top of each ingestion script. To add a city, add it to both scripts and to the `accepted_values` tests in the staging `.yml` files.
 
 ---
 
@@ -127,9 +131,11 @@ Cities and coordinates live in a dictionary at the top of each ingestion script.
 
 ```bash
 git clone https://github.com/Badmosa/Weather-Pipeline.git
+
 cd Weather-Pipeline
 
 python -m venv .venv
+
 source .venv/Scripts/activate      # Git Bash on Windows
 # source .venv/bin/activate        # macOS / Linux
 
@@ -138,7 +144,7 @@ python -m pip install requests duckdb dbt-duckdb psycopg2-binary matplotlib
 
 ### Run the pipeline
 
-Run these from the project root.
+To run the pipeline, run these from the project root.
 
 ```bash
 # Forecast flow
@@ -158,19 +164,19 @@ cd ..
 
 ### Load the marts into Postgres
 
-Start a Postgres container once, with a password of your choice:
+Running a Postgres container with a password:
 
 ```bash
 docker run --name weather-postgres \
-  -e POSTGRES_PASSWORD=<your-password> \
+  -e POSTGRES_PASSWORD=<set password> \
   -e POSTGRES_DB=weather \
   -p 5432:5432 -d postgres:16
 ```
 
-Then set the password as an environment variable (the scripts read it from there, so it never ends up in the repo) and run the loader:
+For the password not to end-up in the repo, the scripts reads the already setted password as an environment variable before runing the loader:   
 
 ```bash
-export POSTGRES_PASSWORD=<your-password>
+export POSTGRES_PASSWORD=<password>
 python Transform/loading_to_data_base_postgres.py
 ```
 
@@ -179,7 +185,7 @@ This copies `city_weather_summary`, `monthly_city_weather` and `stg_weather_hist
 ### Query the results
 
 - **From Python:** `python postgres_query.py`
-- **From a SQL client:** connect pgAdmin or the VS Code PostgreSQL extension to `localhost`, port `5432`, database `weather`, user `postgres`, and run the files in `Analysis/`.
+- **From a SQL client:** connect pgAdmin PostgreSQL extension to `localhost`, port `5432`, database `weather`, user `postgres`, and run the files in `Analysis/`.
 - **DuckDB only:** `python Validation_Check.py` inspects the DuckDB tables directly.
 - **Power BI:** `python Transform/pipeline_visual.py`, then follow `powerbi/build_report.md`.
 
@@ -307,6 +313,7 @@ A dbt test passes when its query returns zero rows. The custom tests work by sel
 
 ## Known limitations
 
+- **Forecast snapshots accumulate.** Re-running the loader on the same day replaces that day's rows, but each new day adds a new snapshot, keyed by load date.
 - **Postgres is a snapshot.** It holds a copy of the tables from the last time the load script ran. After re-running dbt, run the Postgres loader again to refresh it.
 - **The dbt tests cover DuckDB only.** The Postgres copy is not tested separately.
 - **Modeled history.** The archive data is modeled, not station-measured.
@@ -338,4 +345,4 @@ A dbt test passes when its query returns zero rows. The custom tests work by sel
 
 Weather data by [Open-Meteo.com](https://open-meteo.com/).
 
-Happy to welcome all feedback and suggestions.
+Happy to welcome all feedback and suggestions.k
