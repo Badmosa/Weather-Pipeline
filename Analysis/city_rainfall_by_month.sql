@@ -1,5 +1,4 @@
 -- A comparison between the 4 four cities
--- 
 select m as month,
   round(avg(case when city = 'Lagos' then total end)::numeric, 1) as lagos,
   round(avg(case when city = 'London' then total end)::numeric, 1) as london,
