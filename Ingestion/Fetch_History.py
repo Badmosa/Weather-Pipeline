@@ -12,7 +12,7 @@ CITIES = {
 }
 
 START_DATE = "2020-01-01"
-# The archive lags a few days behind, so stop a week ago to be safe
+# The archive lags a few days behind, so stop a week ago to be safe. Precisely on 17-10-2026.
 END_DATE = (date.today() - timedelta(days=7)).isoformat()
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
