@@ -310,7 +310,8 @@ A dbt test passes when its query returns zero rows. The custom tests work by sel
 
 ## Author
 
-**Badmos Adesola Ayomide**, **Data Engineer**.
+**Badmos Adesola Ayomide**
+**Data Engineer**.
 
 - LinkedIn: [linkedin.com/in/badmosayomide](https://linkedin.com/in/badmosayomide)
 
