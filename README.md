@@ -297,22 +297,6 @@ A dbt test passes when its query returns zero rows. The custom tests work by sel
 
 ---
 
-## Design decisions
-
-- **Raw data is kept as-is.** API responses are saved to disk before any cleaning. If a transformation has a bug, I can reprocess from the original files without calling the API again.
-- **Forecast and history are separate.** They live in different folders, tables and models. A forecast is a prediction and history is what was recorded, so mixing them would blur the meaning of the data.
-- **The history load is a full refresh.** `load_history.py` drops and rebuilds its table each run, so re-running never creates duplicates.
-- **The forecast load is idempotent per city and load date.** `load_to_duckdb.py` deletes existing rows for that city and folder date before inserting, so re-running the same files does not create duplicates.
-- **Staging is a view, marts are tables.** Staging is a light cleaning layer, so a view is enough. Marts are what a dashboard would read, so they are materialised as tables.
-- **DuckDB to transform, Postgres to serve.** DuckDB runs in-process from a single file, which keeps development simple. Postgres is a real server with users and connections, which is closer to what a team would query.
-- **Postgres runs in Docker.** One command starts it, and removing the container leaves nothing behind on the machine.
-- **No passwords in the repo.** The Postgres password is read from the `POSTGRES_PASSWORD` environment variable.
-- **Paths are anchored to the project root.** The newer scripts find their folders relative to the file itself, so they work no matter where they are run from.
-- **Tests live next to the models.** Column checks sit in `.yml` files, and rules that need custom logic are standalone SQL files in `tests/`.
-- **Analysis queries are saved as `.sql` files.** They live in the repo, so the findings can be reproduced.
-
----
-
 ## Roadmap
 
 - [x] Forecast and history ingestion
@@ -321,9 +305,6 @@ A dbt test passes when its query returns zero rows. The custom tests work by sel
 - [x] SQL analysis (Lagos rainfall, city comparison)
 - [x] Make the forecast load idempotent
 - [x] Power BI dataset and rainfall visuals on `monthly_city_weather`
-- [ ] Orchestrate the whole run on a daily schedule with Airflow
-- [ ] Add incremental models in dbt
-- [ ] Add more cities and more weather variables
 
 ---
 
