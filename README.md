@@ -99,9 +99,10 @@ Weather-Pipeline/
 └── .gitignore
 ```
 
-Generated files (`weather.duckdb`, `raw_data/`, `.venv/`, and dbt's `target/` and `logs/`) are not committed. Running the pipeline recreates them.
+Generated files (`weather.duckdb`, `raw_data/`, `.venv/`, and dbt's `target/` and `logs/`) are not committed. 
+Running the pipeline recreates them.
 
-The `raw_history/` JSON files are the exception. They are committed so the history flow can be loaded straight after cloning, without calling the archive API again. Running `Fetch_History.py` refreshes them.
+The `raw_history/` JSON files are the exception, running `Fetch_History.py` refreshes them.
 
 ---
 
@@ -126,7 +127,7 @@ The archive values are modeled (reanalysis) data, not readings from weather stat
 
 - Python 3.12 (other recent versions should work)
 - Git
-- Docker Desktop (only needed for the Postgres step)
+- Docker Desktop (it is only needed for the Postgres step)
 
 ### Setup
 
@@ -145,7 +146,7 @@ python -m pip install requests duckdb dbt-duckdb psycopg2-binary matplotlib
 
 ### Run the pipeline
 
-To run the pipeline, run these from the project root.
+To run the pipeline, run these commands from the project root.
 
 ```bash
 # Forecast flow
@@ -194,7 +195,7 @@ This copies `city_weather_summary`, `monthly_city_weather` and `stg_weather_hist
 
 ## Power BI
 
-The serving layer for a dashboard is `monthly_city_weather`. The export script writes three CSVs that Power BI can open without Postgres:
+The serving layer for a dashboard is `monthly_city_weather`. The export script writes three CSV files that Power BI can open without Postgres:
 
 ```bash
 python Transform/pipeline_visual.py
@@ -213,7 +214,7 @@ Build steps and field lists are in `powerbi/build_report.md`. The two findings b
 
 ## Analysis
 
-All figures come from the history flow, January 2020 to October 2026 (about 6.8 years). SQL lives in `Analysis/`.
+All figures come from the history flow, January 2020 to October 2026 (about 6 years and 8 months of data). SQL lives in `Analysis/`.
 
 ![Rainfall dashboard](powerbi/charts/rainfall_dashboard.png)
 
@@ -223,8 +224,8 @@ Averaging each calendar month across the years:
 
 - **Main rains:** June is the wettest month, averaging 266.5 mm with about 27 rainy days.
 - **The August break:** rainfall drops to roughly 115 mm in August, between the two peaks.
-- **Second rains:** September (about 227 mm) and October (about 164 mm) pick back up.
-- **Dry season:** December to February, with January the driest at about 20.7 mm.
+- **Second rains:** September (about 227 mm) and October (about 164 mm).
+- **Dry season:** December to February, with January as the driest month at about 20.7 mm.
 
 ![Average monthly rainfall](powerbi/charts/monthly_rainfall_by_city.png)
 
@@ -237,7 +238,7 @@ Averaging each calendar month across the years:
 | New York | 17.6 C | 9,115 mm | 1,340 mm |
 | London | 15.9 C | 4,965 mm | 730 mm |
 
-I expected Lagos to be the wettest. Its rain is packed into a few heavy months, while Tokyo's is spread across the year, so Tokyo comes out ahead.
+I expected Lagos to be the wettest. Its rain is packed into a few heavy months, while Tokyo's rainfall is spread across the year, so Tokyo comes out ahead.
 
 ![Total rainfall by city](powerbi/charts/total_rainfall_by_city.png)
 
@@ -312,16 +313,6 @@ A dbt test passes when its query returns zero rows. The custom tests work by sel
 
 ---
 
-## Known limitations
-
-- **Forecast snapshots accumulate.** Re-running the loader on the same day replaces that day's rows, but each new day adds a new snapshot, keyed by load date.
-- **Postgres is a snapshot.** It holds a copy of the tables from the last time the load script ran. After re-running dbt, run the Postgres loader again to refresh it.
-- **The dbt tests cover DuckDB only.** The Postgres copy is not tested separately.
-- **Modeled history.** The archive data is modeled, not station-measured.
-- **Manual runs.** Each step is run by hand. Nothing is scheduled yet.
-
----
-
 ## Roadmap
 
 - [x] Forecast and history ingestion
@@ -346,4 +337,4 @@ A dbt test passes when its query returns zero rows. The custom tests work by sel
 
 Weather data by [Open-Meteo.com](https://open-meteo.com/).
 
-Happy to welcome all feedback and suggestions.k
+Happy to welcome all feedback and suggestions.
