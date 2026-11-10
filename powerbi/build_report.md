@@ -2,7 +2,7 @@
 
 Marts are exported as CSV files. 
 
-If you open those files in Power BI, you can build visuals.
+Open those files in Power BI to build visuals.
 
 The same charts are saved in `powerbi/charts/` for GitHub.
 
@@ -35,7 +35,7 @@ To refresh from Postgres instead: **Get data → PostgreSQL database**, server `
 
 Sort `month_name` by `month_num` so the axis is calendar order, not alphabetical.
 
-**Page 2 — Forecast (optional)**
+**Page 2 — Forecast**
 
 | Visual | Fields |
 |---|---|
