@@ -1,4 +1,4 @@
--- Fails if any city has more than one row for the same month
+-- May fail if any city has more than one row for the same month
 select
     city,
     month_start,
