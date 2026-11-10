@@ -1,4 +1,4 @@
--- Fails if any city has more than one row for the same day
+-- This can fail if any city has more than one row for the same day
 select
     city,
     weather_date,
