@@ -37,7 +37,7 @@ flowchart LR
     K --> P
     P --> Q[Postgres 16<br/>in Docker]
     Q --> R[SQL analysis<br/>pgAdmin]
-    R --> S[SQL analysis<br/>Power Bi]
+    R --> S[Visual Analysis<br/>Power Bi]
 ```
 
 | Stage | What happens | Where |
