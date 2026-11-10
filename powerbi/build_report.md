@@ -33,7 +33,7 @@ To refresh from Postgres instead: **Get data → PostgreSQL database**, server `
 | Slicer | `city` |
 | Card | Sum of `avg_rain_mm` for Lagos in June (optional) |
 
-Sort `month_name` by `month_num` so the axis is calendar order, not alphabetical.
+Sorted `month_name` by `month_num` so the axis is in calendar order and not alphabetical.
 
 **Page 2 — Forecast**
 
