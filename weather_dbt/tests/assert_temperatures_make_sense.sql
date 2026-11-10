@@ -1,4 +1,4 @@
--- Fails if a day's low is above its high, or a temperature is impossible
+-- This may fail if a day's low rainfall is above its high rainfall, or a temperature is impossible
 select city, weather_date, temp_min_c, temp_max_c
 from {{ ref('stg_weather') }}
 where temp_min_c > temp_max_c
