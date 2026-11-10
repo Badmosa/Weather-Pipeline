@@ -48,7 +48,7 @@ flowchart LR
 | 4. Model | Builds a per-city forecast summary and a monthly history table (temperatures, rainfall, rainy days) | `weather_dbt/models/marts/` |
 | 5. Test | Runs 18 data tests across the staging and mart models | `.yml` files, `weather_dbt/tests/` |
 | 6. Serve | Copies three finished tables from DuckDB into a Postgres database running in Docker | `Transform/loading_to_data_base_postgres.py` |
-| 7. Analyse | Runs SQL against Postgres, from Python, pgAdmin or VS Code | `postgres_query.py`, `Analysis/` |
+| 7. Analyse | Runs SQL against Postgres from Python, using pgAdmin and VS Code (same analysis) | `postgres_query.py`, `Analysis/` |
 | 8. Visualise | Exports marts to CSV for Power BI and saves the rainfall charts | `Transform/pipeline_visual.py`, `powerbi/` |
 
 ---
