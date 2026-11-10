@@ -78,7 +78,7 @@ def _plot_climatology(rows):
 
     ax.set_xticks(x, MONTHS)
     ax.set_ylabel("Average rain (mm)")
-    ax.set_title("Average monthly rainfall, 2020–2026")
+    ax.set_title("Average monthly rainfall from 2020–2026")
     ax.legend()
     ax.grid(axis="y", alpha=0.3)
     fig.tight_layout()
@@ -94,7 +94,7 @@ def _plot_totals(rows):
     fig, ax = plt.subplots(figsize=(8, 4.5))
     bars = ax.bar(cities, values, color=colours)
     ax.set_ylabel("Total rain (mm)")
-    ax.set_title("Total rainfall by city, 2020–2026")
+    ax.set_title("Total rainfall by city from 2020–2026")
     ax.bar_label(bars, fmt="%.0f")
     ax.grid(axis="y", alpha=0.3)
     fig.tight_layout()
