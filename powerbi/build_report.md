@@ -1,6 +1,6 @@
 # Power BI report
 
-Power BI Desktop cannot be generated from this repo, so the marts are exported as CSV. Open those files in Power BI and build the two visuals below. The same charts are saved in `powerbi/charts/` for GitHub.
+Marts are exported as CSV files. If those files are opened in Power BI, visuals can be built. The same charts are saved in `powerbi/charts/` for GitHub.
 
 ## Data
 
